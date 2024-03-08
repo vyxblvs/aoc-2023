@@ -53,6 +53,5 @@ int main()
 	}
 
 	std::cout << "result: " << sum << '\n';
-
 	return 0;
 }
