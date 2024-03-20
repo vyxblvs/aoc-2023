@@ -1,0 +1,56 @@
+#define WIN32_LEAN_AND_MEAN
+
+#include <windows.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+
+#define races 4
+
+void GetNumbers(std::string& line, int buffer[races])
+{
+    int pos = line.find_first_of(':') + 1;
+    line.erase(0, line.substr(pos).find_first_not_of(' ') + pos);
+    line += ' ';
+
+    for (int x = 0; x < races; ++x)
+    {
+        pos = line.find_first_of(' ');
+        buffer[x] = std::stoi(line.substr(0, pos));
+        line.erase(0, line.substr(pos + 1).find_first_not_of(' ') + pos + 1);
+    }
+}
+
+int main()
+{
+    std::string line(MAX_PATH, NULL);
+    GetModuleFileNameA(nullptr, line.data(), MAX_PATH);
+
+    std::ifstream input((line.substr(0, line.find_last_of('\\') + 1)) + "input.txt");
+    line.clear();
+
+    std::getline(input, line);
+    int time[races];
+    GetNumbers(line, time);
+
+    std::getline(input, line);
+    int distance[races];
+    GetNumbers(line, distance);
+
+    int sum = 1;
+    for (int race = 0; race < races; ++race)
+    {
+        int combos = 0;
+
+        for (int x = 1; x <= time[race]; ++x)
+        {
+            if ((time[race] - x) * x > distance[race]) ++combos;
+        }
+
+        sum *= combos ? combos : 1;
+    }
+
+    std::cout << "result: " << sum << '\n';
+
+    return true;
+}

@@ -1,0 +1,59 @@
+#define WIN32_LEAN_AND_MEAN
+
+#include <windows.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <algorithm>
+
+
+int main()
+{
+    std::string line(MAX_PATH, NULL);
+    GetModuleFileNameA(nullptr, line.data(), MAX_PATH);
+
+    std::ifstream input((line.substr(0, line.find_last_of('\\') + 1)) + "input.txt");
+    line.clear();
+
+    int sum = 0;
+    while (std::getline(input, line))
+    {
+        std::string stats = line.substr(line.find_first_of(':') + 2);
+        const auto size = (std::count(stats.begin(), stats.end(), ' ') + 1) / 2;
+        int result = std::stoi(line.substr(5, line.find_first_of(':') + 1));
+
+        for (int x = 0; x < size; ++x)
+        {
+            size_t segment = stats.find_first_of(';');
+            if (segment == std::string::npos) segment = stats.size();
+
+            std::string round_stats = stats.substr(0, segment);
+            const auto round_size = (std::count(round_stats.begin(), round_stats.end(), ' ') + 1) / 2;
+
+            for (int y = 0; y < round_size; ++y)
+            {
+                const size_t pos = round_stats.find_first_of(' ') + 1;
+                int num = std::stoi(round_stats.substr(0, pos));
+
+                const char color = round_stats.at(pos);
+                if ((color == 'r' && num > 12) || (color == 'g' && num > 13) || num > 14)
+                {
+                    result = 0;
+                    break;
+                }
+                
+                const size_t next_entry = round_stats.find_first_of(',') + 2;
+                if (next_entry != std::string::npos) round_stats.erase(0, next_entry);
+            }
+            if (!result) break;
+
+            stats.erase(0, segment + 2);
+        }
+        
+        sum += result;
+    }
+
+    std::cout << "result: " << sum << '\n';
+
+    return true;
+}

@@ -1,0 +1,61 @@
+#define WIN32_LEAN_AND_MEAN
+
+#include <windows.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+
+
+int main()
+{
+    constexpr const char* numbers[] =
+    {
+        "one", "two", "three", "four", "five", 
+        "six", "seven", "eight", "nine"
+    };
+    constexpr const char* const rnumbers[] =
+    {
+        "eno", "owt", "eerht", "ruof", "evif",
+        "xis", "neves", "thgie", "enin"
+    };
+
+    std::string line(MAX_PATH, NULL);
+    GetModuleFileNameA(nullptr, line.data(), MAX_PATH);
+
+    std::ifstream input((line.substr(0, line.find_last_of('\\') + 1)) + "input.txt");
+    line.clear();
+
+    int sum = 0;
+    while (std::getline(input, line))
+    {
+        char value[2] = { 0, 0 };
+        const char** numstr = const_cast<const char**>(numbers);
+
+        for (int side = 0; side < 2; ++side, numstr = const_cast<const char**>(rnumbers), std::reverse(line.begin(), line.end()))
+        {
+            for (int x = 0; x < line.size() && !value[side]; ++x)
+            {
+                if (std::isdigit(line[x]))
+                {
+                    value[side] = line[x];
+                    break;
+                }
+
+                for (int y = 0; y < 9; ++y)
+                {
+                    if (line.substr(x).find(numstr[y]) == 0)
+                    {
+                        value[side] = y + 49;
+                        break;
+                    }
+                }
+            }
+        }
+
+        sum += std::stoi(value);
+    }
+
+    std::cout << "result: " << sum << '\n';
+
+    return true;
+}

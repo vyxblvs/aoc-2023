@@ -1,0 +1,77 @@
+//INSANELY inefficient lmao
+
+#define seed_map 0
+#define seed_num 1
+#define seed_range 2
+
+#define WIN32_LEAN_AND_MEAN
+
+#include <windows.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+
+
+int* GetNumbers(std::string line, unsigned long* buffer)
+{
+    for (size_t x = 0, numbers = std::count(line.begin(), line.end(), ' ') + 1; x < numbers; ++x)
+    {
+        const size_t pos = line.find_first_of(' ');
+        buffer[x] = std::stoul(line.substr(0, pos));
+        line.erase(0, pos + 1);
+    }
+}
+
+int main()
+{
+    std::string line(MAX_PATH, NULL);
+    GetModuleFileNameA(nullptr, line.data(), MAX_PATH);
+
+    std::ifstream input((line.substr(0, line.find_last_of('\\') + 1)) + "input.txt");
+    line.clear();
+    std::getline(input, line);
+
+    unsigned long num_of_seeds = std::count(line.begin(), line.end(), ' ');
+    std::vector<unsigned long> seeds(num_of_seeds);
+
+    GetNumbers(line.substr(line.find_first_of(' ') + 1), seeds.data());
+    for (int x = 0; x < num_of_seeds / 2; ++x)
+    {
+        for (size_t len = 1; len < seeds[x + 1]; ++len)
+            seeds.emplace_back(seeds[x] + len);
+        
+        seeds.erase(seeds.begin() + x + 1);
+    }
+    num_of_seeds = seeds.size();
+
+    std::getline(input, line);
+    int sum = 0;
+    bool* status = new bool[seeds.size()];
+    while (std::getline(input, line))
+    {
+        std::fill_n(status, num_of_seeds, true);
+        std::getline(input, line);
+        
+        do
+        {
+            unsigned long numbers[3];
+            GetNumbers(line, numbers);
+
+            for (int x = 0; x < num_of_seeds; ++x)
+            {
+                if (status[x] && seeds[x] >= numbers[seed_num] && seeds[x] <= numbers[seed_num] + numbers[seed_range])
+                {
+                    status[x] = false;
+                    seeds[x] = numbers[seed_map] + (seeds[x] - numbers[seed_num]);
+                }
+            }
+
+        } while (std::getline(input, line) && std::isdigit(line[0]));
+    }
+
+    delete[] status;
+    std::cout << "result: " << *std::min_element(seeds.begin(), seeds.end()) << '\n';
+
+    return true;
+}

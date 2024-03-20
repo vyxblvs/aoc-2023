@@ -1,0 +1,69 @@
+#define WIN32_LEAN_AND_MEAN
+
+#include <windows.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+
+
+int main()
+{
+    std::string line(MAX_PATH, NULL), line_2, line_3;
+    GetModuleFileNameA(nullptr, line.data(), MAX_PATH);
+
+    std::ifstream input((line.substr(0, line.find_last_of('\\') + 1)) + "input.txt");
+    line.clear();
+
+    int sum = 0;
+    std::getline(input, line);
+    bool exit = false;
+    while (!exit)
+    {
+        if (!std::getline(input, line_2))
+        {
+            line_2 = line_3;
+            line_3 = line;
+            exit = true;
+        }
+
+        for (size_t x = 0; x < line.length(); ++x)
+        {
+            if (std::isdigit(line[x]))
+            {
+                const size_t end = ((x + 1 == line.length() || !std::isdigit(line[x + 1])) ? x : (std::isdigit(line[x + 2]) ? x + 2 : x + 1)) + 1;
+                const int number = end > 1 ? std::stoi(line.substr(x, end)) : line[0] - 48;
+                if ((x && line[x - 1] != '.' && !std::isdigit(line[x - 1])) || (end != line.length() && line[end] != '.' && !std::isdigit(line[end])))
+                {
+                    sum += number;
+                }
+                else
+                {
+                    const std::string* str_ptr = &line_2;
+                    for (char swap = 0; swap <= 1; ++swap, str_ptr = &line_3)
+                    {
+                        for (size_t y = 0; y < (end - x) + 2; ++y)
+                        {
+                            const size_t pos = y + x - 1;
+                            if ((x || y) && pos != line.length() && str_ptr[0][pos] != '.' && !std::isdigit(str_ptr[0][pos]))
+                            {
+                                swap = 2;
+                                sum += number;
+                                break;
+                            }
+                        }
+                        if (line_3.empty()) break;
+                    }
+                }
+
+                x = end;
+            }
+        }
+
+        line_3 = line;
+        line = line_2;
+    }
+
+    std::cout << "result: " << sum << '\n';
+
+    return true;
+}

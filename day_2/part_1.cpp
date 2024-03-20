@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 
-void part_1()
+int part_1()
 {
 	std::ifstream file("c:\\input\\input.txt");
 	std::string line;
@@ -47,4 +47,5 @@ void part_1()
 	}
 
 	std::cout << "result: " << sum << '\n';
+	return 0;
 }

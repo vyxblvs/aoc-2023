@@ -1,0 +1,50 @@
+#define WIN32_LEAN_AND_MEAN
+
+#include <windows.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <algorithm>
+
+
+void GetCards(std::string& line, std::string cards[2])
+{
+    const size_t colon_pos = line.find_first_of(':');
+    const size_t bar_pos = line.find_first_of('|');
+    cards[0] = line.substr(colon_pos + 1, bar_pos - colon_pos - 1);
+    cards[1] = line.substr(bar_pos + 2);
+}
+
+
+int main()
+{
+    std::string line(MAX_PATH, NULL);
+    GetModuleFileNameA(nullptr, line.data(), MAX_PATH);
+
+    std::ifstream input((line.substr(0, line.find_last_of('\\') + 1)) + "input.txt");
+    line.clear();
+
+    int sum = 0;
+    int copies[189];
+    std::fill_n(copies, 189, 1);
+    for (int x = 0; std::getline(input, line); ++x)
+    {
+        ++sum;
+        std::string cards[2];
+        GetCards(line, cards); 
+
+        for (int copy = 0; copy < copies[x]; ++copy)
+        {
+            for (int base = 0, matches = 0; base <= cards[1].length(); base += 3)
+            {
+                if (cards[0].find(' ' + cards[1].substr(base, 2) + ' ') != std::string::npos)
+                {
+                    ++sum, ++matches, ++copies[x + matches];
+                };
+            }
+        }
+    }
+
+    std::cout << "result: " << sum << '\n';
+    return true;
+}

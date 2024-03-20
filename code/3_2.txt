@@ -1,0 +1,100 @@
+#define WIN32_LEAN_AND_MEAN
+
+#include <windows.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+
+
+int GetNumber(const std::string& line, const size_t base)
+{
+    size_t start(base), offset(1);
+    if (base && std::isdigit(line[base - 1]))
+    {
+        --start, ++offset;
+        if (base >= 2 && std::isdigit(line[base - 2])) --start, ++offset;
+    }
+    while (start + offset + 1 <= line.length() && std::isdigit(line[start + offset]))
+    {
+        ++offset;
+    }
+
+    return std::stoi(line.substr(start, offset));
+}
+
+
+int main()
+{
+    std::string line(MAX_PATH, NULL), line_2, line_3;
+    GetModuleFileNameA(nullptr, line.data(), MAX_PATH);
+
+    std::ifstream input((line.substr(0, line.find_last_of('\\') + 1)) + "input.txt");
+    line.clear();
+
+    int sum = 0;
+    std::getline(input, line);
+    bool exit = false;
+    while (!exit)
+    {
+        if (!std::getline(input, line_2))
+        {
+            line_2 = line_3;
+            line_3 = line;
+            exit = true;
+        }
+        
+        if (line.find('*') != std::string::npos)
+        {
+            for (size_t base = 0; base < line.find_last_of('*');)
+            {
+                base = line.find_first_of('*', base + (1 - (base == 0)));
+                int numbers = 0;
+                int part[2] = { 0, 0 };
+
+                if (std::isdigit(line[base - 1]))
+                {
+                    part[0] = GetNumber(line, base - 1);
+                    ++numbers;
+                }
+                if (std::isdigit(line[base + 1]))
+                {
+                    part[numbers] = GetNumber(line, base + 2);
+                    ++numbers;
+                }
+                
+                
+                const std::string* str_ptr = &line_2; 
+                for (char swap = 0; swap <= 1 && !str_ptr->empty() && numbers < 2; ++swap, str_ptr = &line_3)
+                {
+                    if (std::isdigit(str_ptr[0][base]))
+                    {
+                        if (numbers < 2) part[numbers] = GetNumber(*str_ptr, base);
+                        ++numbers;
+                        continue;
+                    }
+                    if (std::isdigit(str_ptr[0][base - 1]))
+                    {
+                        ++numbers;
+                        if (numbers < 3) part[numbers - 1] = GetNumber(*str_ptr, base - 1);
+                        else break;
+                    }
+                    if (std::isdigit(str_ptr[0][base + 1]))
+                    {
+                        ++numbers;
+                        if (numbers < 3) part[numbers - 1] = GetNumber(*str_ptr, base + 1);
+                        else break;
+                    }
+                }
+
+                if (numbers == 2) sum += part[0] * part[1];
+            }
+        }
+
+        line_3 = line;
+        line = line_2;
+    }
+
+    std::cout << "result: " << sum << '\n';
+
+    return true;
+}
